@@ -1,0 +1,924 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>Decife — We decipher, you decide.</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            obsidian: '#090A10',
+            surface: '#11131C',
+            bordercol: '#1F2333',
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Inter", sans-serif; }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    .card-item { transition: opacity 0.2s ease, transform 0.2s ease; }
+    .brand-font { font-family: "All Round Gothic", -apple-system, sans-serif; font-weight: 800; letter-spacing: -0.04em; }
+  </style>
+</head>
+<body class="bg-black text-zinc-100 min-h-screen selection:bg-indigo-500/30 selection:text-indigo-300">
+
+  <!-- ========================================================= -->
+  <!-- 1. LANDING PAGE VIEW (MINIMAL, BLACK)                     -->
+  <!-- ========================================================= -->
+  <div id="landing-view" class="min-h-screen flex flex-col justify-between items-center px-6 py-12">
+    <div></div>
+
+    <main class="max-w-xl w-full text-center flex flex-col items-center">
+      <!-- Friend's Logo -->
+      <div class="mb-8">
+        <img 
+          src="logo.svg" 
+          alt="Decife" 
+          class="h-10 sm:h-12 w-auto mx-auto object-contain"
+          onerror="this.onerror=null; this.src='logo.png';" 
+        />
+      </div>
+
+      <!-- Tagline -->
+      <h1 class="text-xl sm:text-2xl font-semibold tracking-tight text-zinc-100 mb-4">
+        We decipher, you decide.
+      </h1>
+
+      <!-- Pitch -->
+      <p class="text-sm sm:text-base text-zinc-400 leading-relaxed max-w-lg mb-10">
+        Decife strips away ad noise, algorithmic feeds, and dopamine hooks. We aggregate your emails, Telegram, notifications, and feeds into pure, actionable items—drastically cutting screen time so you can focus on what matters.
+      </p>
+
+      <!-- Buttons -->
+      <div class="flex flex-col sm:flex-row items-center justify-center gap-3 w-full sm:w-auto">
+        <a 
+          href="https://forms.gle/L1zwtghodFzE5iko6" 
+          target="_blank" 
+          rel="noopener noreferrer"
+          class="w-full sm:w-auto px-6 py-3 rounded-lg bg-white text-black font-semibold text-sm hover:bg-zinc-200 transition duration-150 text-center">
+          Join Private Beta
+        </a>
+
+        <button 
+          onclick="openPreview()" 
+          class="w-full sm:w-auto px-6 py-3 rounded-lg bg-zinc-900 border border-zinc-800 text-zinc-300 font-semibold text-sm hover:bg-zinc-800 hover:text-white transition duration-150">
+          Try Interactive Demo
+        </button>
+      </div>
+    </main>
+
+    <footer class="text-xs text-zinc-600 font-mono">
+      pekka@decife.com
+    </footer>
+  </div>
+
+
+  <!-- ========================================================= -->
+  <!-- 2. PRODUCT PREVIEW (ORIGINAL GUI LAYOUT)                  -->
+  <!-- ========================================================= -->
+  <div id="preview-view" class="hidden bg-obsidian text-zinc-100 min-h-screen pb-24">
+
+    <!-- DECIFE HEADER NAVIGATION -->
+    <header class="sticky top-0 z-50 bg-obsidian/85 backdrop-blur-md border-b border-bordercol px-4 py-2.5">
+      <div class="max-w-6xl mx-auto flex items-center justify-between gap-3">
+        
+        <!-- Left: Back Button & Logo -->
+        <div class="flex items-center space-x-3">
+          <button onclick="closePreview()" title="Return to Landing Page" class="text-xs font-mono text-zinc-400 hover:text-white flex items-center space-x-1 px-2.5 py-1 rounded bg-zinc-900 border border-zinc-800 transition">
+            <span>&larr; Exit Preview</span>
+          </button>
+
+          <a href="javascript:void(0)" onclick="switchTab('events')" class="flex items-center">
+            <img src="logo.svg" alt="Decife" class="h-6 w-auto object-contain" onerror="this.onerror=null; this.src='logo.png';" />
+          </a>
+
+          <span class="hidden lg:inline-block text-[11px] text-zinc-500 font-mono tracking-wider pl-3 border-l border-zinc-800">
+            We decipher, you decide.
+          </span>
+        </div>
+
+        <!-- Live Status & Controls Cluster -->
+        <div class="flex items-center space-x-2 sm:space-x-3">
+          
+          <!-- Engine Status Dot -->
+          <div class="flex items-center space-x-1.5 text-[11px] text-zinc-400 font-mono">
+            <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
+            <span class="text-zinc-500 hidden md:inline">Today at 10:42 AM</span>
+          </div>
+
+          <!-- Run Pipeline Button -->
+          <div class="flex items-center space-x-1">
+            <select id="pipeline-lookback" class="text-[11px] bg-zinc-900 border border-zinc-700/60 rounded-l-lg px-2 py-1 text-zinc-300 font-medium outline-none">
+              <option value="24">24h</option>
+              <option value="48">48h</option>
+              <option value="72">72h</option>
+              <option value="168">7d</option>
+            </select>
+            <button onclick="simulateRunPipeline()" class="text-[11px] font-semibold px-2.5 py-1 rounded-r-lg bg-zinc-100 hover:bg-white text-zinc-900 transition shadow-sm">
+              <span>Run</span>
+            </button>
+          </div>
+
+          <div class="h-4 w-px bg-zinc-800 hidden sm:block"></div>
+
+          <!-- TOP-RIGHT UTILITY CLUSTER -->
+          <div class="flex items-center space-x-1">
+            <!-- Saved (Bookmark) -->
+            <button onclick="switchTab('saved')" id="util-saved" title="Saved Bookmarks" class="p-1.5 rounded-lg transition relative text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/></svg>
+              <span id="counter-saved" class="absolute -top-1 -right-1 text-[9px] font-bold bg-emerald-500 text-zinc-950 px-1 rounded-full hidden">0</span>
+            </button>
+
+            <!-- Dismissed (Archive) -->
+            <button onclick="switchTab('dismissed')" id="util-dismissed" title="Dismissed Archive" class="p-1.5 rounded-lg transition text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+            </button>
+
+            <!-- Sources (Feed Routing) -->
+            <button onclick="switchTab('sources')" id="util-sources" title="Source Routing & Blacklist" class="p-1.5 rounded-lg transition text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
+            </button>
+
+            <!-- Settings (Engine Controls) -->
+            <button onclick="switchTab('settings')" id="util-settings" title="System Settings" class="p-1.5 rounded-lg transition text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+            </button>
+          </div>
+
+        </div>
+      </div>
+      
+      <!-- PRIMARY INTELLIGENCE STREAMS BAR -->
+      <div class="max-w-6xl mx-auto flex space-x-1.5 mt-2.5 overflow-x-auto text-xs no-scrollbar pb-0.5">
+        <button onclick="switchTab('events')" id="tab-nav-events" class="stream-tab-btn px-3 py-1.5 rounded-lg whitespace-nowrap transition flex items-center space-x-1.5 bg-zinc-800 text-white font-semibold border border-zinc-700/80">
+          <span>Events</span>
+          <span class="text-[10px] text-zinc-400 font-mono" id="stream-count-events">(4)</span>
+        </button>
+
+        <button onclick="switchTab('jobs')" id="tab-nav-jobs" class="stream-tab-btn px-3 py-1.5 rounded-lg whitespace-nowrap transition flex items-center space-x-1.5 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900/60">
+          <span>Jobs</span>
+          <span class="text-[10px] text-zinc-400 font-mono" id="stream-count-jobs">(4)</span>
+        </button>
+
+        <button onclick="switchTab('opportunities')" id="tab-nav-opportunities" class="stream-tab-btn px-3 py-1.5 rounded-lg whitespace-nowrap transition flex items-center space-x-1.5 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900/60">
+          <span>Opportunities</span>
+          <span class="text-[10px] text-zinc-400 font-mono" id="stream-count-opportunities">(3)</span>
+        </button>
+
+        <button onclick="switchTab('deals')" id="tab-nav-deals" class="stream-tab-btn px-3 py-1.5 rounded-lg whitespace-nowrap transition flex items-center space-x-1.5 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900/60">
+          <span>Deals</span>
+          <span class="text-[10px] text-zinc-400 font-mono" id="stream-count-deals">(3)</span>
+        </button>
+
+        <button onclick="switchTab('news')" id="tab-nav-news" class="stream-tab-btn px-3 py-1.5 rounded-lg whitespace-nowrap transition flex items-center space-x-1.5 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900/60">
+          <span>News</span>
+          <span class="text-[10px] text-zinc-400 font-mono" id="stream-count-news">(3)</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- MAIN BODY CONTAINER -->
+    <main class="max-w-6xl mx-auto px-4 mt-5">
+
+      <!-- ========================================== -->
+      <!-- VIEW: SETTINGS & PARAMETERS                -->
+      <!-- ========================================== -->
+      <div id="view-settings" class="space-y-6 hidden">
+        <div class="bg-surface rounded-xl border border-bordercol p-4 shadow-lg shadow-black/20">
+          <h2 class="text-sm font-bold text-zinc-100 mb-1">Storage & Performance Maintenance</h2>
+          <p class="text-xs text-zinc-500 mb-3">Maintain database indexing and clear temporary cached flyers.</p>
+          <div class="flex flex-wrap gap-2">
+            <button onclick="alert('Posters older than 30 days pruned.')" class="text-xs font-semibold px-3 py-1.5 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-zinc-300 border border-zinc-800 transition">
+              Prune Posters (&gt;30d)
+            </button>
+            <button onclick="alert('Database compacted.')" class="text-xs font-semibold px-3 py-1.5 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-zinc-300 border border-zinc-800 transition">
+              Vacuum Database
+            </button>
+          </div>
+        </div>
+
+        <div class="bg-surface rounded-xl border border-bordercol p-4 space-y-4 shadow-lg shadow-black/20">
+          <h2 class="text-sm font-bold text-zinc-100 border-b border-bordercol pb-2">Pipeline & Scheduler Parameters</h2>
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div>
+              <label class="block text-xs font-semibold text-zinc-400 mb-1">Default Lookback</label>
+              <select class="w-full text-xs border border-zinc-800 rounded-lg p-2 bg-zinc-900 text-zinc-200 outline-none">
+                <option selected>24 Hours (1 Day)</option>
+                <option>48 Hours (2 Days)</option>
+                <option>72 Hours (3 Days)</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-zinc-400 mb-1">Unreviewed TTL</label>
+              <select class="w-full text-xs border border-zinc-800 rounded-lg p-2 bg-zinc-900 text-zinc-200 outline-none">
+                <option selected>48 Hours</option>
+                <option>72 Hours</option>
+                <option>Never Auto-Dismiss</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-zinc-400 mb-1">Ollama Model</label>
+              <select class="w-full text-xs border border-zinc-800 rounded-lg p-2 bg-zinc-900 text-zinc-200 outline-none font-mono">
+                <option selected>qwen2.5:14b (Deep Quality)</option>
+                <option>llama3.1:8b (Fast)</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-zinc-400 mb-1">Inference Temperature</label>
+              <input type="number" step="0.05" value="0.10" class="w-full text-xs border border-zinc-800 rounded-lg p-2 bg-zinc-900 text-zinc-200 outline-none">
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-surface rounded-xl border border-bordercol p-4 space-y-4 shadow-lg shadow-black/20">
+          <h2 class="text-sm font-bold text-zinc-100 border-b border-bordercol pb-2">User Persona & Priorities</h2>
+          <div>
+            <label class="block text-xs font-semibold text-zinc-400 mb-1">Personal Bio & Background</label>
+            <textarea rows="2" class="w-full text-xs border border-zinc-800 rounded-lg p-2.5 bg-zinc-900 text-zinc-200 outline-none">Nordic tech founder & engineer building privacy-first distributed tools.</textarea>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-zinc-400 mb-1">Target Priorities</label>
+            <textarea rows="2" class="w-full text-xs border border-zinc-800 rounded-lg p-2.5 bg-zinc-900 text-zinc-200 outline-none">Local AI, Rust, edge computing, deeptech grants, seed capital, tech community events.</textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- ========================================== -->
+      <!-- VIEW: SOURCES & CATEGORY ROUTING           -->
+      <!-- ========================================== -->
+      <div id="view-sources" class="bg-surface rounded-xl border border-bordercol p-4 shadow-lg shadow-black/20 hidden">
+        <div class="flex items-center justify-between mb-1">
+          <h2 class="text-sm font-bold text-zinc-100">Source Routing &amp; Noise Advisor</h2>
+          <span class="text-xs text-zinc-500 font-mono">Ranked by Noise %</span>
+        </div>
+        <p class="text-xs text-zinc-400 mb-4">Route channels directly into specific streams to save inference time.</p>
+
+        <div class="divide-y divide-bordercol">
+          <div class="py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+            <div>
+              <div class="flex items-center space-x-2">
+                <p class="text-xs font-semibold text-zinc-200">Helsinki Tech Community (Telegram)</p>
+                <span class="text-[10px] bg-emerald-950/60 text-emerald-400 font-bold px-1.5 py-0.5 rounded border border-emerald-800/60">12 Signal</span>
+              </div>
+              <p class="text-[11px] text-zinc-500">Telegram &bull; 148 messages scanned</p>
+            </div>
+            <div class="flex items-center space-x-2">
+              <select class="text-xs border border-zinc-800 rounded px-2 py-1 bg-zinc-900 text-zinc-300 outline-none">
+                <option>Lock to Events</option>
+                <option>Auto-Detect</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+            <div>
+              <div class="flex items-center space-x-2">
+                <p class="text-xs font-semibold text-zinc-200">Crypto Shilling Channel</p>
+                <span class="text-[10px] bg-red-950/60 text-red-400 font-bold px-1.5 py-0.5 rounded border border-red-800/60">98.2% Noise</span>
+              </div>
+              <p class="text-[11px] text-zinc-500">Telegram &bull; 412 messages scanned</p>
+            </div>
+            <div class="flex items-center space-x-2">
+              <span class="text-xs bg-red-950/60 text-red-400 border border-red-800/60 font-semibold px-2.5 py-1 rounded">Blacklisted</span>
+            </div>
+          </div>
+
+          <div class="py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+            <div>
+              <div class="flex items-center space-x-2">
+                <p class="text-xs font-semibold text-zinc-200">Horizon Europe Grant Feed</p>
+                <span class="text-[10px] bg-emerald-950/60 text-emerald-400 font-bold px-1.5 py-0.5 rounded border border-emerald-800/60">4 Signal</span>
+              </div>
+              <p class="text-[11px] text-zinc-500">RSS / Webhook &bull; 8 messages scanned</p>
+            </div>
+            <div class="flex items-center space-x-2">
+              <select class="text-xs border border-zinc-800 rounded px-2 py-1 bg-zinc-900 text-zinc-300 outline-none">
+                <option>Lock to Opportunities</option>
+                <option>Auto-Detect</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ========================================== -->
+      <!-- VIEW: PRIMARY CARDS FEED                   -->
+      <!-- ========================================== -->
+      <div id="view-cards-wrapper">
+        <div class="flex items-center justify-between mb-3 px-1">
+          <span id="feed-header-label" class="text-xs font-mono text-zinc-500 uppercase tracking-wider">
+            UNREVIEWED STREAM
+          </span>
+          <button onclick="dismissAllInCurrentTab()" class="text-xs bg-zinc-900 hover:bg-red-950/40 text-zinc-400 hover:text-red-400 border border-zinc-800 hover:border-red-800/60 font-medium px-3 py-1 rounded-lg transition">
+            Dismiss All
+          </button>
+        </div>
+
+        <div class="space-y-3" id="cards-container">
+          <!-- Populated by JavaScript -->
+        </div>
+      </div>
+
+    </main>
+
+    <!-- Clean Signature Watermark Footer -->
+    <footer class="mt-16 text-center py-6 border-t border-bordercol">
+      <p class="text-[10px] text-zinc-600 font-mono tracking-widest uppercase">
+        DECIFE &bull; WE DECIPHER, YOU DECIDE.
+      </p>
+    </footer>
+
+  </div>
+
+
+  <!-- ========================================================= -->
+  <!-- 3. DATASET & ENGINE JAVASCRIPT                            -->
+  <!-- ========================================================= -->
+  <script>
+    function openPreview() {
+      document.getElementById('landing-view').classList.add('hidden');
+      document.getElementById('preview-view').classList.remove('hidden');
+      window.scrollTo(0, 0);
+    }
+
+    function closePreview() {
+      document.getElementById('preview-view').classList.add('hidden');
+      document.getElementById('landing-view').classList.remove('hidden');
+      window.scrollTo(0, 0);
+    }
+
+    // Rich mock dataset
+    const originalMockItems = [
+      // EVENTS
+      {
+        id: 101,
+        category: 'EVENT',
+        tab: 'events',
+        organization: 'Nordic AI Guild',
+        event_date: 'Nov 14, 2025',
+        event_time: '17:30',
+        gcal_start: '20251114T153000Z',
+        gcal_end: '20251114T190000Z',
+        title: 'Nordic DeepTech & LLM Architecture Gathering',
+        summary: 'Invitation-only demo day for Nordic deep tech founders. Keynotes on on-device SLM architectures and Horizon Europe grant execution.',
+        financial_gain_or_value: 'Free entry (€250 saved) • Free food & drinks',
+        location: 'Maria 01, Helsinki (Hybrid)',
+        action_link: 'https://forms.gle/L1zwtghodFzE5iko6',
+        source: 'Telegram: @NordicFounders (10:14 AM)',
+        context_snippet: 'Forwarded message: "We reserved 15 complimentary builder passes for Helsinki AI engineers before doors open..."',
+        raw_body: 'Full raw telegram batch from @NordicFounders containing 42 chat lines summarized by Decife engine into clean actionable data.'
+      },
+      {
+        id: 102,
+        category: 'EVENT',
+        tab: 'events',
+        organization: 'Rust Meetup Group',
+        event_date: 'Nov 18, 2025',
+        event_time: '18:00',
+        gcal_start: '20251118T170000Z',
+        gcal_end: '20251118T190000Z',
+        title: 'Zero-Copy Streaming Pipelines in Rust',
+        summary: 'Technical workshop covering concurrent memory models, SIMD, and zero-copy packet ingestion pipelines.',
+        financial_gain_or_value: null,
+        location: 'Online Webinar',
+        action_link: 'https://forms.gle/L1zwtghodFzE5iko6',
+        source: 'Newsletter: Systems Digest (08:22 AM)',
+        context_snippet: 'Live coding session with core engine maintainers on handling 100k events/sec with minimal CPU footprints.',
+        raw_body: 'Newsletter issue #49 raw contents.'
+      },
+      {
+        id: 103,
+        category: 'EVENT',
+        tab: 'events',
+        organization: 'Slush Official Side-Track',
+        event_date: 'Nov 20, 2025',
+        event_time: '14:00',
+        gcal_start: '20251120T120000Z',
+        gcal_end: '20251120T150000Z',
+        title: 'Sovereign Software & Non-Algorithmic Computing Roundtable',
+        summary: 'Private salon for founders building software designed to cure dopamine addiction and replace infinite scrolling feeds.',
+        financial_gain_or_value: 'Complimentary Partner Pass',
+        location: 'Messukeskus, Helsinki',
+        action_link: 'https://forms.gle/L1zwtghodFzE5iko6',
+        source: 'Email: founder-invites@slush.org',
+        context_snippet: '"Join 20 founders rethinking user attention models beyond ad-targeting."',
+        raw_body: 'Email invite forwarded to your Decife intake.'
+      },
+      {
+        id: 104,
+        category: 'EVENT',
+        tab: 'events',
+        organization: 'Helsinki Tech Breakfast',
+        event_date: 'Nov 26, 2025',
+        event_time: '08:30',
+        gcal_start: '20251126T063000Z',
+        gcal_end: '20251126T080000Z',
+        title: 'Seed Stage Tech Breakfast & Founder AMA',
+        summary: 'Informal breakfast sync discussing early angel rounds, sovereign runway management, and local engineering talent.',
+        financial_gain_or_value: 'Free Breakfast',
+        location: 'Kämp Garden, Helsinki',
+        action_link: 'https://forms.gle/L1zwtghodFzE5iko6',
+        source: 'Telegram: @FoundersHelsinki',
+        context_snippet: 'Small group reservation for 12 founders.',
+        raw_body: 'Chat snippet.'
+      },
+
+      // JOBS
+      {
+        id: 201,
+        category: 'JOB',
+        tab: 'jobs',
+        organization: 'Stealth AI Venture',
+        deadline: 'Nov 30, 2025',
+        title: 'Staff Distributed Systems Engineer (Local LLM Ingestion)',
+        summary: 'Direct referral opportunity for a lead backend developer to build asynchronous ingestion and tokenization microservices.',
+        financial_gain_or_value: '€115k – €145k + 0.8% Equity',
+        location: 'Remote (EU Timezone)',
+        action_link: 'https://forms.gle/L1zwtghodFzE5iko6',
+        source: 'Telegram: VIP Recruiter Chat',
+        context_snippet: 'Founder message: "Looking for an engineer who knows SIMD & low-memory model deployment. Fast-track screening if referred."',
+        raw_body: 'Recruiter pitch.'
+      },
+      {
+        id: 202,
+        category: 'JOB',
+        tab: 'jobs',
+        organization: 'Decife Core Team',
+        deadline: 'Immediate',
+        title: 'Lead Frontend UI/UX Engineer (High-Density Dark Mode)',
+        summary: 'Work directly on Decife to build high-converting, minimal, keyboard-driven executive tools with zero latency.',
+        financial_gain_or_value: '€80 - €120 / hr (Contract or Full-time)',
+        location: 'Remote / Helsinki',
+        action_link: 'mailto:pekka@decife.com',
+        source: 'Direct Internal Spec',
+        context_snippet: 'Direct application line to founders for dark-mode specialists.',
+        raw_body: 'Internal spec document.'
+      },
+      {
+        id: 203,
+        category: 'JOB',
+        tab: 'jobs',
+        organization: 'Nordic Infrastructure Labs',
+        deadline: 'Dec 05, 2025',
+        title: 'Security & SQLite Storage Architect',
+        summary: 'Architect sovereign encrypted storage caches for on-device executive data parsing.',
+        financial_gain_or_value: '€90k - €120k',
+        location: 'Helsinki (Hybrid)',
+        action_link: 'https://forms.gle/L1zwtghodFzE5iko6',
+        source: 'Direct Referral Email',
+        context_snippet: '"Looking for senior systems engineers who care deeply about local data sovereignty."',
+        raw_body: 'Referral memo.'
+      },
+      {
+        id: 204,
+        category: 'JOB',
+        tab: 'jobs',
+        organization: 'Autonomous Edge Corp',
+        deadline: 'Dec 12, 2025',
+        title: 'Senior Python & PyTorch Quantization Lead',
+        summary: 'Convert 14B and 8B parameter vision-language models into sub-2GB ONNX runtime containers.',
+        financial_gain_or_value: '€100k – €130k',
+        location: 'Remote',
+        action_link: 'https://forms.gle/L1zwtghodFzE5iko6',
+        source: 'RSS Feed: TechCareers',
+        context_snippet: 'Focus on model distillation and zero-latency batching.',
+        raw_body: 'Job board post.'
+      },
+
+      // OPPORTUNITIES
+      {
+        id: 301,
+        category: 'OPPORTUNITY',
+        tab: 'opportunities',
+        organization: 'Horizon Europe Tech Fund',
+        deadline: 'Dec 10, 2025',
+        title: 'EU Sovereign AI & Edge Computing Grant Allocation',
+        summary: 'Non-dilutive innovation funding call for privacy-focused consumer software and local data extraction architectures.',
+        financial_gain_or_value: '€75,000 equity-free grant + €25,000 cloud credits',
+        location: 'European Union',
+        action_link: 'https://forms.gle/L1zwtghodFzE5iko6',
+        source: 'RSS: EU Innovation Gateway',
+        context_snippet: 'Regulatory bulletin: "Call open to early-stage founders operating zero-tracking sovereign software."',
+        raw_body: 'EU Grant Call Horizon-2025-EIC-01.'
+      },
+      {
+        id: 302,
+        category: 'OPPORTUNITY',
+        tab: 'opportunities',
+        organization: 'Aalto Ventures Program',
+        deadline: 'Dec 01, 2025',
+        title: 'Nordic Angel Seed Syndicate Cohort',
+        summary: 'Fast-track angel round matching Nordic software startups with verified syndicate leaders for €150k-€300k checks.',
+        financial_gain_or_value: '€150k - €300k Angel Round',
+        location: 'Otaniemi, Espoo',
+        action_link: 'https://forms.gle/L1zwtghodFzE5iko6',
+        source: 'Newsletter: Aalto Seed (09:12 AM)',
+        context_snippet: 'Applications prioritized for B2B and high-signal consumer utilities.',
+        raw_body: 'Application form guidelines.'
+      },
+      {
+        id: 303,
+        category: 'OPPORTUNITY',
+        tab: 'opportunities',
+        organization: 'Mozilla Open Source Fellowship',
+        deadline: 'Jan 15, 2026',
+        title: 'Public Interest Tech & Anti-Addiction Grant',
+        summary: 'Sponsorship grants for engineers creating tools that counteract digital dark patterns and notification bombardment.',
+        financial_gain_or_value: '$30,000 unrestricted fellowship grant',
+        location: 'Global',
+        action_link: 'https://forms.gle/L1zwtghodFzE5iko6',
+        source: 'Email: foundation@mozilla.org',
+        context_snippet: '"Supporting open initiatives that return digital agency to users."',
+        raw_body: 'Fellowship notice.'
+      },
+
+      // DEALS
+      {
+        id: 401,
+        category: 'DEAL',
+        tab: 'deals',
+        organization: 'Cloud Infrastructure Partner',
+        deadline: 'Nov 30, 2025',
+        title: 'Anthropic & Cloud GPU Developer Grant Tier',
+        summary: 'Claim 12 months of discounted dedicated inference clusters and API access vouchers for early startup teams.',
+        financial_gain_or_value: '$10,000 API credit pool',
+        location: 'Global',
+        action_link: 'https://forms.gle/L1zwtghodFzE5iko6',
+        source: 'Email: founder-perks@accelerator.io',
+        context_snippet: 'Partner perk newsletter: "Claim your team voucher before the Q4 cohort window concludes."',
+        raw_body: 'Promo code details.'
+      },
+      {
+        id: 402,
+        category: 'DEAL',
+        tab: 'deals',
+        organization: 'Hetzner Dedicated Servers',
+        deadline: 'Dec 15, 2025',
+        title: 'AMD EPYC Dedicated Bare-Metal Server Bundle',
+        summary: '30% recurring reduction on European bare-metal dedicated servers for background web ingestion bots.',
+        financial_gain_or_value: 'Saves €1,200 annually',
+        location: 'Helsinki & Falkenstein Data Centers',
+        action_link: 'https://forms.gle/L1zwtghodFzE5iko6',
+        source: 'Newsletter: InfraDeals',
+        context_snippet: 'Valid on AX-series dedicated hardware.',
+        raw_body: 'Hardware discount code.'
+      },
+      {
+        id: 403,
+        category: 'DEAL',
+        tab: 'deals',
+        organization: 'Linear + Raycast Developer Suite',
+        deadline: 'Rolling',
+        title: 'Startup Command-Bar & Issue Suite',
+        summary: 'Annual free team tier upgrade for startups under 10 employees.',
+        financial_gain_or_value: '$480 annual value',
+        location: 'Global',
+        action_link: 'https://forms.gle/L1zwtghodFzE5iko6',
+        source: 'Partner Listing',
+        context_snippet: 'One-click activation for approved founders.',
+        raw_body: 'Listing details.'
+      },
+
+      // NEWS
+      {
+        id: 501,
+        category: 'NEWS',
+        tab: 'news',
+        organization: 'Euractiv Digital Rights',
+        title: 'EU Mandates Pure Chronological Feeds for Digital Communications',
+        summary: 'New consumer privacy enforcement draft requires notification and messaging aggregators to provide clean, algorithm-free streams.',
+        financial_gain_or_value: null,
+        location: 'Brussels',
+        action_link: 'https://forms.gle/L1zwtghodFzE5iko6',
+        source: 'Euractiv Tech RSS (Yesterday)',
+        context_snippet: 'Article excerpt: "Users overwhelmingly report higher focus and reduced screen anxiety when provided chronological summaries instead of engagement reels."',
+        raw_body: 'Press release text.'
+      },
+      {
+        id: 502,
+        category: 'NEWS',
+        tab: 'news',
+        organization: 'AI Research Review',
+        title: 'Small Language Models Surpass 70B Models on Structured Extraction',
+        summary: 'New benchmark results confirm that quantized 14B models run locally achieve higher JSON accuracy on noisy email triage than cloud APIs.',
+        financial_gain_or_value: null,
+        location: 'Online',
+        action_link: 'https://forms.gle/L1zwtghodFzE5iko6',
+        source: 'ArXiv Digest',
+        context_snippet: 'Paper abstract: Specialized parameter tuning yields sub-100ms information distillation on standard Mac hardware.',
+        raw_body: 'ArXiv preprint summary.'
+      },
+      {
+        id: 503,
+        category: 'NEWS',
+        tab: 'news',
+        organization: 'Executive Attention Report',
+        title: 'The Shift to Single-Triage Productivity Interfaces',
+        summary: 'Survey of 400 technology executives shows 82% abandon traditional social feeds in favor of deterministic personal digests.',
+        financial_gain_or_value: null,
+        location: 'San Francisco',
+        action_link: 'https://forms.gle/L1zwtghodFzE5iko6',
+        source: 'Substack: FocusEconomy',
+        context_snippet: 'Executives express exhaustion with fragmented notifications.',
+        raw_body: 'Report text.'
+      }
+    ];
+
+    // App state
+    let activeStreamTab = 'events';
+    let currentItems = JSON.parse(JSON.stringify(originalMockItems));
+    let savedIds = new Set();
+    let dismissedIds = new Set();
+
+    function renderActiveView() {
+      const cardsWrapper = document.getElementById('view-cards-wrapper');
+      const settingsView = document.getElementById('view-settings');
+      const sourcesView = document.getElementById('view-sources');
+
+      // Hide views
+      cardsWrapper.classList.add('hidden');
+      settingsView.classList.add('hidden');
+      sourcesView.classList.add('hidden');
+
+      // Reset utility button highlight styles
+      ['util-saved', 'util-dismissed', 'util-sources', 'util-settings'].forEach(id => {
+        const el = document.getElementById(id);
+        el.classList.remove('bg-zinc-800', 'text-white');
+        el.classList.add('text-zinc-400');
+      });
+
+      // Reset stream tab highlight styles
+      ['events', 'jobs', 'opportunities', 'deals', 'news'].forEach(t => {
+        const el = document.getElementById(`tab-nav-${t}`);
+        if (el) {
+          el.classList.remove('bg-zinc-800', 'text-white', 'font-semibold', 'border', 'border-zinc-700/80');
+          el.classList.add('text-zinc-400');
+        }
+      });
+
+      if (activeStreamTab === 'settings') {
+        settingsView.classList.remove('hidden');
+        document.getElementById('util-settings').classList.add('bg-zinc-800', 'text-white');
+        return;
+      }
+
+      if (activeStreamTab === 'sources') {
+        sourcesView.classList.remove('hidden');
+        document.getElementById('util-sources').classList.add('bg-zinc-800', 'text-white');
+        return;
+      }
+
+      // Cards view (Events, Jobs, Opportunities, Deals, News, Saved, Dismissed)
+      cardsWrapper.classList.remove('hidden');
+
+      const streamTabBtn = document.getElementById(`tab-nav-${activeStreamTab}`);
+      if (streamTabBtn) {
+        streamTabBtn.classList.add('bg-zinc-800', 'text-white', 'font-semibold', 'border', 'border-zinc-700/80');
+      }
+
+      if (activeStreamTab === 'saved') {
+        document.getElementById('util-saved').classList.add('bg-zinc-800', 'text-white');
+      } else if (activeStreamTab === 'dismissed') {
+        document.getElementById('util-dismissed').classList.add('bg-zinc-800', 'text-white');
+      }
+
+      renderCardsFeed();
+    }
+
+    function renderCardsFeed() {
+      const container = document.getElementById('cards-container');
+      const headerLabel = document.getElementById('feed-header-label');
+
+      let activeList = [];
+      if (activeStreamTab === 'saved') {
+        activeList = currentItems.filter(i => savedIds.has(i.id) && !dismissedIds.has(i.id));
+        headerLabel.textContent = `${activeList.length} SAVED BOOKMARKS`;
+      } else if (activeStreamTab === 'dismissed') {
+        activeList = currentItems.filter(i => dismissedIds.has(i.id));
+        headerLabel.textContent = `${activeList.length} DISMISSED ARCHIVE`;
+      } else {
+        activeList = currentItems.filter(i => i.tab === activeStreamTab && !savedIds.has(i.id) && !dismissedIds.has(i.id));
+        headerLabel.textContent = `${activeList.length} UNREVIEWED ${activeStreamTab.toUpperCase()}`;
+      }
+
+      updateCounts();
+
+      if (activeList.length === 0) {
+        container.innerHTML = `
+          <div class="text-center py-20 border border-zinc-900 rounded-xl">
+            <p class="text-zinc-500 text-xs font-mono">Stream is clear.</p>
+            <button onclick="resetAllDemoCards()" class="mt-2 text-[11px] text-zinc-400 hover:text-white underline font-mono">
+              Reset Simulated Queue
+            </button>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = activeList.map(item => {
+        let gcalUrl = '#';
+        if (item.category === 'EVENT') {
+          const title = encodeURIComponent(item.title);
+          const details = encodeURIComponent(item.summary + '\n\nSource: ' + item.source + '\n\nProcessed by Decife');
+          const loc = encodeURIComponent(item.location || '');
+          const dates = `${item.gcal_start}/${item.gcal_end}`;
+          gcalUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${dates}&details=${details}&location=${loc}`;
+        }
+
+        return `
+          <div class="card-item bg-surface rounded-xl border border-bordercol hover:border-zinc-700/80 p-4 relative shadow-lg shadow-black/20" id="card-${item.id}">
+            
+            <div class="flex items-start justify-between gap-2">
+              <div class="flex items-center space-x-2">
+                <span class="text-[10px] font-mono font-bold tracking-wider px-2 py-0.5 rounded
+                  ${item.category === 'EVENT' ? 'bg-cyan-950/60 text-cyan-400 border border-cyan-800/60' : ''}
+                  ${item.category === 'JOB' ? 'bg-emerald-950/60 text-emerald-400 border border-emerald-800/60' : ''}
+                  ${item.category === 'OPPORTUNITY' ? 'bg-indigo-950/60 text-indigo-400 border border-indigo-800/60' : ''}
+                  ${item.category === 'DEAL' ? 'bg-rose-950/60 text-rose-400 border border-rose-800/60' : ''}
+                  ${item.category === 'NEWS' ? 'bg-purple-950/60 text-purple-400 border border-purple-800/60' : ''}">
+                  ${item.category}
+                </span>
+                ${item.organization ? `<span class="text-xs text-zinc-400 truncate max-w-[220px]">${item.organization}</span>` : ''}
+              </div>
+              
+              ${item.event_date ? `
+                <span class="text-[11px] font-mono font-semibold text-zinc-300 bg-zinc-900 border border-zinc-800 px-2 py-0.5 rounded flex items-center space-x-1">
+                  <svg class="w-3 h-3 text-zinc-400 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                  <span>${item.event_date} ${item.event_time || ''}</span>
+                </span>
+              ` : (item.deadline ? `
+                <span class="text-[11px] font-mono font-semibold text-red-400 bg-red-950/40 border border-red-900/60 px-2 py-0.5 rounded">
+                  DDL: ${item.deadline}
+                </span>
+              ` : '')}
+            </div>
+
+            <h2 class="text-sm font-bold text-zinc-100 mt-2 leading-snug">${item.title}</h2>
+            <p class="text-xs text-zinc-400 mt-1 leading-relaxed">${item.summary}</p>
+
+            ${item.financial_gain_or_value ? `
+              <div class="mt-2 text-[11px] bg-zinc-900/70 text-zinc-300 rounded p-1.5 border border-zinc-800/80 flex items-center font-mono">
+                <span class="text-amber-400 font-bold mr-1.5">VALUE:</span> ${item.financial_gain_or_value}
+              </div>
+            ` : ''}
+
+            <div class="mt-3 flex flex-wrap items-center gap-3 text-[11px] text-zinc-500">
+              ${item.location ? `
+                <span class="flex items-center space-x-1">
+                  <svg class="w-3 h-3 text-zinc-400 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                  <span>${item.location}</span>
+                </span>
+              ` : ''}
+              ${item.action_link ? `
+                <a href="${item.action_link}" target="_blank" class="text-indigo-400 hover:text-indigo-300 font-semibold flex items-center space-x-0.5">
+                  <span>Direct Link</span>
+                  <svg class="w-3 h-3 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                </a>
+              ` : ''}
+            </div>
+
+            <details class="mt-3 text-xs border-t border-bordercol pt-2 text-zinc-500">
+              <summary class="cursor-pointer font-medium hover:text-zinc-300 select-none">
+                Details &amp; Raw Source
+              </summary>
+              <div class="mt-2 bg-zinc-900/60 p-2.5 rounded border border-zinc-800 space-y-2">
+                <p class="font-mono text-[11px]"><strong>Source:</strong> ${item.source}</p>
+                ${item.context_snippet ? `
+                  <div class="bg-zinc-900 border-l-2 border-indigo-500 p-2 text-zinc-300 rounded-r">
+                    <p class="font-mono text-[10px] text-indigo-400 font-bold mb-0.5">RELEVANT EXCERPT:</p>
+                    <p class="text-xs italic">${item.context_snippet}</p>
+                  </div>
+                ` : ''}
+                <pre class="whitespace-pre-wrap font-sans text-xs text-zinc-400 mt-1 max-h-32 overflow-y-auto">${item.raw_body}</pre>
+              </div>
+            </details>
+
+            <!-- Action Buttons Bar -->
+            <div class="mt-4 pt-3 border-t border-bordercol flex items-center justify-between gap-2">
+              ${activeStreamTab === 'dismissed' ? `
+                <button onclick="restoreCard(${item.id})" class="w-full text-xs font-semibold py-2 px-3 rounded-lg border border-zinc-800 bg-zinc-900 hover:bg-zinc-800 text-zinc-300 transition">
+                  Restore to Stream
+                </button>
+              ` : `
+                <div class="flex items-center space-x-1.5">
+                  <button onclick="dismissCard(${item.id})" class="text-xs font-medium py-1.5 px-3 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-zinc-400 border border-zinc-800 transition">
+                    Dismiss
+                  </button>
+
+                  <button onclick="alert('Flagged extraction anomaly for model re-training.')" title="Report Extraction Error" class="text-xs font-medium p-1.5 rounded-lg bg-zinc-900 hover:bg-red-950/40 text-zinc-500 hover:text-red-400 border border-zinc-800 transition">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                  </button>
+                </div>
+
+                <div class="flex items-center gap-2">
+                  ${item.category === 'EVENT' ? `
+                    <!-- Working Google Calendar Button -->
+                    <a href="${gcalUrl}" target="_blank" onclick="saveCard(${item.id})" 
+                       class="text-xs font-semibold py-1.5 px-3 rounded-lg bg-zinc-900 text-cyan-400 hover:bg-zinc-800 border border-cyan-900/60 transition flex items-center space-x-1">
+                      <svg class="w-3.5 h-3.5 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                      <span>Calendar</span>
+                    </a>
+                  ` : ''}
+
+                  ${!savedIds.has(item.id) ? `
+                    <button onclick="saveCard(${item.id})" class="text-xs font-semibold py-1.5 px-3 rounded-lg bg-zinc-100 hover:bg-white text-zinc-900 transition shadow-sm">
+                      Save
+                    </button>
+                  ` : `
+                    <button onclick="unsaveCard(${item.id})" class="text-xs font-semibold py-1.5 px-3 rounded-lg bg-emerald-950/80 border border-emerald-800 text-emerald-400 transition">
+                      Saved &check;
+                    </button>
+                  `}
+                </div>
+              `}
+            </div>
+
+          </div>
+        `;
+      }).join('');
+    }
+
+    function switchTab(tabKey) {
+      activeStreamTab = tabKey;
+      renderActiveView();
+    }
+
+    function dismissCard(id) {
+      const card = document.getElementById(`card-${id}`);
+      if (card) {
+        card.style.opacity = '0';
+        card.style.transform = 'scale(0.96)';
+        setTimeout(() => {
+          dismissedIds.add(id);
+          savedIds.delete(id);
+          renderActiveView();
+        }, 150);
+      }
+    }
+
+    function restoreCard(id) {
+      dismissedIds.delete(id);
+      renderActiveView();
+    }
+
+    function saveCard(id) {
+      savedIds.add(id);
+      dismissedIds.delete(id);
+      renderActiveView();
+    }
+
+    function unsaveCard(id) {
+      savedIds.delete(id);
+      renderActiveView();
+    }
+
+    function dismissAllInCurrentTab() {
+      if (confirm(`Dismiss all unreviewed items in this queue?`)) {
+        currentItems.filter(i => i.tab === activeStreamTab && !savedIds.has(i.id)).forEach(i => dismissedIds.add(i.id));
+        renderActiveView();
+      }
+    }
+
+    function updateCounts() {
+      ['events', 'jobs', 'opportunities', 'deals', 'news'].forEach(t => {
+        const count = currentItems.filter(i => i.tab === t && !savedIds.has(i.id) && !dismissedIds.has(i.id)).length;
+        const el = document.getElementById(`stream-count-${t}`);
+        if (el) el.textContent = `(${count})`;
+      });
+
+      const sCount = savedIds.size;
+      const counterEl = document.getElementById('counter-saved');
+      if (counterEl) {
+        if (sCount > 0) {
+          counterEl.textContent = sCount;
+          counterEl.classList.remove('hidden');
+        } else {
+          counterEl.classList.add('hidden');
+        }
+      }
+    }
+
+    function resetAllDemoCards() {
+      currentItems = JSON.parse(JSON.stringify(originalMockItems));
+      savedIds.clear();
+      dismissedIds.clear();
+      renderActiveView();
+    }
+
+    function simulateRunPipeline() {
+      const val = document.getElementById('pipeline-lookback').value;
+      alert(`Pipeline initiated with ${val}h lookback. Scanned 5 channels; 0 new anomalies detected.`);
+    }
+
+    // Initialize default view
+    renderActiveView();
+  </script>
+</body>
+</html>
